@@ -1,2 +1,2 @@
 require "spec"
-require "../src/lemmatizer"
+require "../src/cadmium/lemmatizer"

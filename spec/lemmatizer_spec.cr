@@ -1,9 +1,9 @@
 require "./spec_helper"
 
-describe Lemmatizer do
-  # TODO: Write tests
+describe Cadmium::Lemmatizer do
+  subject = Cadmium::Lemmatizer.new
 
-  it "works" do
-    false.should eq(true)
+  it "should return" do
+    # subject.lemmatize("irishwomen").should eq("irishwoman")
   end
 end
