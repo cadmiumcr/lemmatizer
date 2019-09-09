@@ -1,6 +1,7 @@
-# lemmatizer
+# Cadmium::Lemmatizer
 
-TODO: Write a description here
+WIP. For now, until Cadmium::POS_Tagger is ready, this lemmatizer returns an array of possible lemmas for a string input.
+English data is included, but other languages are available at cadmiumcr/languages.
 
 ## Installation
 
@@ -8,8 +9,8 @@ TODO: Write a description here
 
    ```yaml
    dependencies:
-     lemmatizer:
-       github: your-github-user/lemmatizer
+     cadmium_lemmatizer:
+       github: cadmiumcr/lemmatizer
    ```
 
 2. Run `shards install`
@@ -17,18 +18,15 @@ TODO: Write a description here
 ## Usage
 
 ```crystal
-require "lemmatizer"
+require "cadmium_lemmatizer"
+
+Cadmium::Lemmatizer.new.lemmatize("zoomed") # => ["zoom"]
+
 ```
-
-TODO: Write usage instructions here
-
-## Development
-
-TODO: Write development instructions here
 
 ## Contributing
 
-1. Fork it (<https://github.com/your-github-user/lemmatizer/fork>)
+1. Fork it (<https://github.com/cadmiumcr/lemmatizer/fork>)
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
@@ -36,4 +34,4 @@ TODO: Write development instructions here
 
 ## Contributors
 
-- [Rémy Marronnier](https://github.com/your-github-user) - creator and maintainer
+- [Rémy Marronnier](https://github.com/rmarronnier) - creator and maintainer
