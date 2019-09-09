@@ -1,71 +1,55 @@
 require "json"
 
 module Cadmium
-  module LemmatizerData
-    DATA_DIR = "#{__DIR__}/data/"
+  struct LemmaData
+    property language : String # Make it a Symbol
+    property lookup : Hash(String, String)
+    property rules : Hash(String, Array(Array(String)))?
+    property index : Hash(String, Array(String))?
+    property exceptions : Hash(String, Hash(String, Array(String)))?
 
-    @@lemmatizer_lookup : Hash(String, String) = Hash(String, String).from_json({{ read_file("#{DATA_DIR.id}en/lemmatizer/lemma_lookup.json") }})
-    @@lemmatizer_index : Hash(String, Array(String)) = Hash(String, Array(String)).from_json({{ read_file("#{DATA_DIR.id}en/lemmatizer/lemma_index.json") }})
-    @@lemmatizer_rules : Hash(String, Array(Array(String))) = Hash(String, Array(Array(String))).from_json({{ read_file("#{DATA_DIR.id}en/lemmatizer/lemma_rules.json") }})                  # Will become NameTuple when Crystal 0.31 is out
-    @@lemmatizer_exceptions : Hash(String, Hash(String, Array(String))) = Hash(String, Hash(String, Array(String))).from_json({{ read_file("#{DATA_DIR.id}en/lemmatizer/lemma_exc.json") }}) # Will become NameTuple when Crystal 0.31 is out
-
-    macro lemmatizer_data(*languages)
-        {% for language, index in languages %}
-            def self.lemmatizer_data_{{language}} : Array(String)
-                {{ read_file("#{DATA_DIR.id}#{language}.txt") }}
-            end
-        {% end %}
+    def initialize(language = "en", data_path = "#{__DIR__}/data/")
+      @language = language
+      @lookup = Hash(String, String).from_json(File.read(data_path + language + "/lemma_lookup.json"))
+      @rules = Hash(String, Array(Array(String))).from_json(File.read(data_path + language + "/lemma_rules.json"))
+      @index = Hash(String, Array(String)).from_json(File.read(data_path + language + "/lemma_index.json"))
+      @exceptions = Hash(String, Hash(String, Array(String))).from_json(File.read(data_path + language + "/lemma_exc.json"))
     end
   end
 
   class Lemmatizer
-    include Cadmium::LemmatizerData
-    @lookup_table : Hash(String, String) = @@lemmatizer_lookup
-    @rules : Hash(String, Array(Array(String))) = @@lemmatizer_rules
-    @index : Hash(String, Array(String)) = @@lemmatizer_index
-    @exceptions : Hash(String, Hash(String, Array(String))) = @@lemmatizer_exceptions
+    @data : LemmaData
 
-    #   def self.get_lemmas
+    def initialize(data = LemmaData.new)
+      @data = data
+    end
 
-    #   lemmas = lemmatize(
-    #         string,
-    #         self.index.get(univ_pos, {}),
-    #         self.exc.get(univ_pos, {}),
-    #         self.rules.get(univ_pos, []),
-    #     )
-    #     return lemmas
-    # end
-
-    def lemmatize(token : String | Token, index = @index, lookup = @lookup_table, exceptions = @exceptions, rules = @rules) # : Array(String)
-      return [lookup[token.capitalize]] if token.is_a?(String) || @rules.nil?
-
-      raw_string = token.verbatim.downcase.not_nil! if token.is_a?(Token)
-      return [raw_string] if token.univ_pos.nil? || token.univ_pos == "PROPN"
-      return [raw_string] if token.is_base_form?
+    def lemmatize(token : String | Token, index = @data.index, lookup = @data.lookup, exceptions = @data.exceptions, rules = @data.rules) # : Array(String)
+      return [lookup.fetch(token.capitalize, token).downcase] if token.is_a?(String) || rules.nil?
+      if token.is_a?(Token)
+        raw_string = token.verbatim.downcase.not_nil!
+        return [raw_string] if token.univ_pos.nil? || token.univ_pos == "PROPN"
+        return [raw_string] if token.is_base_form?
+        index = index.fetch(token.univ_pos, nil)
+        rules = rules.fetch(token.univ_pos, nil)
+        exceptions = exceptions.fetch(token.univ_pos, nil)
+      end
       forms = [] of String
-      oov_forms = [] of String           # Out Of Vocabulary
-      rules.each do |original, modified| # Change rules to Hash(original => modified)
-        if raw_string.not_nil!.ends_with?(original)
-          form = raw_string.not_nil!.chop(original) + modified
+      oov_forms = [] of String # Out Of Vocabulary
+      rules[token.univ_pos].each do |original_modified|
+        if raw_string.not_nil!.ends_with?(original_modified[0])
+          form = raw_string.not_nil!.chop(original_modified[0]) + original_modified[1]
           if index.includes?(form)
             forms << form
           else
             oov_forms << form
           end
         end
-        forms.compact!
-
-        # for form in exceptions.get(string, []):
-        #     if form not in forms:
-        #         forms.insert(0, form)
-        # if not forms:
-        #     forms.extend(oov_forms)
-        # if not forms:
-        #     forms.append(orig)
-        # return forms
-
+        forms.insert(0, exceptions[raw_string]) unless exceptions.nil?
+        forms = oov_forms if forms.empty?
+        forms << raw_string if forms.empty?
       end
-      forms
+      forms.flatten.compact
     end
   end
 end

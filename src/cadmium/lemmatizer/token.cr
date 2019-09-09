@@ -1,8 +1,8 @@
 module Cadmium
-  class Token
-    @verbatim : String = ""
-    @univ_pos : String = ""
-    @morphology : Hash(String, String) = {"" => ""}
+  struct Token
+    property verbatim : String = ""
+    property univ_pos : String = ""
+    property morphology : Hash(String, String) = {"" => ""}
 
     def self.is_base_form? : Bool
       # Check whether we're dealing with an uninflected paradigm, so we can
