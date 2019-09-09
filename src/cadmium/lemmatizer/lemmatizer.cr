@@ -24,8 +24,8 @@ module Cadmium
       @data = data
     end
 
-    def lemmatize(token : String | Token, index = @data.index, lookup = @data.lookup, exceptions = @data.exceptions, rules = @data.rules) # : Array(String)
-      return [lookup.fetch(token.capitalize, token).downcase] if token.is_a?(String) || rules.nil?
+    def lemmatize(token : String | Token, index = @data.index, lookup = @data.lookup, exceptions = @data.exceptions, rules = @data.rules)
+      return [lookup.fetch(token.capitalize, token).downcase] if token.is_a?(String) || rules.nil? # Tokens are capitalized in lookup file.
       if token.is_a?(Token)
         raw_string = token.verbatim.downcase.not_nil!
         return [raw_string] if token.univ_pos.nil? || token.univ_pos == "PROPN"
