@@ -17,13 +17,16 @@ module Cadmium
     end
   end
 
+  # Cadmium::Lemmatizer returns an Array of possible lemmas strings according to provided LemmaData at its initialization.
   class Lemmatizer
     @data : LemmaData
 
+    # By default english LemmaData is provided.You can find data for several languages in the cadmiumcr/languages repo.
     def initialize(data = LemmaData.new)
       @data = data
     end
 
+    # Returns an Array of possible lemmas strings
     def lemmatize(token : String | Token, index = @data.index, lookup = @data.lookup, exceptions = @data.exceptions, rules = @data.rules)
       if token.is_a?(String) || rules.nil?
         return [token] if lookup.nil?
