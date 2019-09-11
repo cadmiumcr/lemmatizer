@@ -1,5 +1,7 @@
 # Cadmium::Lemmatizer
 
+![](https://github.com/cadmiumcr/lemmatizer/workflows/lemmatizer/badge.svg)
+
 WIP. For now, until Cadmium::POS_Tagger is ready, this lemmatizer returns an array of possible lemmas for a string input.
 English data is included, but other languages are available at cadmiumcr/languages.
 
