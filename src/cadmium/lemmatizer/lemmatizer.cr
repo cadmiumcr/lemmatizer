@@ -1,19 +1,20 @@
 require "json"
+require "cadmium_pos_tagger"
 
 module Cadmium
   struct LemmaData
-    property language : String # Make it a Symbol
+    property language : Symbol
     property lookup : Hash(String, String)?
     property rules : Hash(String, Array(Array(String)))?
     property index : Hash(String, Array(String))?
     property exceptions : Hash(String, Hash(String, Array(String)))?
 
-    def initialize(language = "en", data_path = "#{__DIR__}/data/")
+    def initialize(language = :en, data_path = "#{__DIR__}/data/")
       @language = language
-      @lookup = Hash(String, String).from_json(File.read(data_path + language + "/lemma_lookup.json")) if File.file?(data_path + language + "/lemma_lookup.json")
-      @rules = Hash(String, Array(Array(String))).from_json(File.read(data_path + language + "/lemma_rules.json")) if File.file?(data_path + language + "/lemma_rules.json")
-      @index = Hash(String, Array(String)).from_json(File.read(data_path + language + "/lemma_index.json")) if File.file?(data_path + language + "/lemma_index.json")
-      @exceptions = Hash(String, Hash(String, Array(String))).from_json(File.read(data_path + language + "/lemma_exc.json")) if File.file?(data_path + language + "/lemma_exceptions.json")
+      @lookup = Hash(String, String).from_json(File.read(data_path + @language.to_s + "/lemma_lookup.json")) if File.file?(data_path + @language.to_s + "/lemma_lookup.json")
+      @rules = Hash(String, Array(Array(String))).from_json(File.read(data_path + @language.to_s + "/lemma_rules.json")) if File.file?(data_path + @language.to_s + "/lemma_rules.json")
+      @index = Hash(String, Array(String)).from_json(File.read(data_path + @language.to_s + "/lemma_index.json")) if File.file?(data_path + @language.to_s + "/lemma_index.json")
+      @exceptions = Hash(String, Hash(String, Array(String))).from_json(File.read(data_path + @language.to_s + "/lemma_exc.json")) if File.file?(data_path + @language.to_s + "/lemma_exceptions.json")
     end
   end
 
@@ -27,6 +28,7 @@ module Cadmium
     end
 
     # Returns an Array of possible lemmas strings
+    # ameba:disable Metrics/CyclomaticComplexity
     def lemmatize(token : String | Token, index = @data.index, lookup = @data.lookup, exceptions = @data.exceptions, rules = @data.rules)
       if token.is_a?(String) || rules.nil?
         return [token] if lookup.nil?
