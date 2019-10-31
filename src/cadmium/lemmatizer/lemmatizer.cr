@@ -29,33 +29,31 @@ module Cadmium
 
     # Returns an Array of possible lemmas strings
     # ameba:disable Metrics/CyclomaticComplexity
-    def lemmatize(token : String | Token, index = @data.index, lookup = @data.lookup, exceptions = @data.exceptions, rules = @data.rules)
-      if token.is_a?(String) || rules.nil?
-        return [token] if lookup.nil?
-        return [lookup.fetch(token.capitalize, token).downcase] # Tokens are capitalized in lookup file.
+    def lemmatize(token : Token, index = @data.index, lookup = @data.lookup, exceptions = @data.exceptions, rules = @data.rules)
+      if (rules.nil? || token.univ_pos.nil? || token.univ_pos == :PROPN || token.is_base_form? || index.nil?)
+        return [token.verbatim] if lookup.nil?
+        return [lookup.fetch(token.verbatim, token.verbatim)]
       end
-      if token.is_a?(Token)
-        raw_string = token.verbatim.downcase.not_nil!
-        return [raw_string] if token.univ_pos.nil? || token.univ_pos == "PROPN"
-        return [raw_string] if token.is_base_form?
-        index = index.fetch(token.univ_pos, nil)
-        rules = rules.fetch(token.univ_pos, nil)
-        exceptions = exceptions.fetch(token.univ_pos, nil)
-      end
+        raw_string = token.verbatim.downcase
+        raw_string = "" if raw_string.nil?
+        index = index.not_nil!.fetch(token.univ_pos.not_nil!, nil)
+        rules = rules.not_nil!.fetch(token.univ_pos.not_nil!, nil)
+        return [raw_string] if rules.nil? || index.nil?
+        #exceptions = exceptions.not_nil!.fetch(token.univ_pos, nil)
       forms = [] of String
       oov_forms = [] of String # Out Of Vocabulary
-      rules[token.univ_pos].each do |original_modified|
+      rules.not_nil!.each do |original_modified|
         if raw_string.not_nil!.ends_with?(original_modified[0])
-          form = raw_string.not_nil!.chop(original_modified[0]) + original_modified[1]
-          if index.includes?(form)
+          form = raw_string.not_nil!.rchop(original_modified[0]).to_s + original_modified[1].to_s
+          if index.not_nil!.includes?(form)
             forms << form
           else
             oov_forms << form
           end
         end
-        forms.insert(0, exceptions[raw_string]) unless exceptions.nil?
+        #forms.insert(0, exceptions[raw_string]) unless exceptions.nil?
         forms = oov_forms if forms.empty?
-        forms << raw_string if forms.empty?
+        forms << raw_string.not_nil! if forms.empty?
       end
       forms.flatten.compact
     end
