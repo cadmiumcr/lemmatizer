@@ -34,12 +34,12 @@ module Cadmium
         return [token.verbatim] if lookup.nil?
         return [lookup.fetch(token.verbatim, token.verbatim)]
       end
-        raw_string = token.verbatim.downcase
-        raw_string = "" if raw_string.nil?
-        index = index.not_nil!.fetch(token.univ_pos.not_nil!, nil)
-        rules = rules.not_nil!.fetch(token.univ_pos.not_nil!, nil)
-        return [raw_string] if rules.nil? || index.nil?
-        #exceptions = exceptions.not_nil!.fetch(token.univ_pos, nil)
+      raw_string = token.verbatim.downcase
+      raw_string = "" if raw_string.nil?
+      index = index.not_nil!.fetch(token.univ_pos.not_nil!, nil)
+      rules = rules.not_nil!.fetch(token.univ_pos.not_nil!, nil)
+      return [raw_string] if rules.nil? || index.nil?
+      # exceptions = exceptions.not_nil!.fetch(token.univ_pos, nil)
       forms = [] of String
       oov_forms = [] of String # Out Of Vocabulary
       rules.not_nil!.each do |original_modified|
@@ -51,7 +51,7 @@ module Cadmium
             oov_forms << form
           end
         end
-        #forms.insert(0, exceptions[raw_string]) unless exceptions.nil?
+        # forms.insert(0, exceptions[raw_string]) unless exceptions.nil?
         forms = oov_forms if forms.empty?
         forms << raw_string.not_nil! if forms.empty?
       end
