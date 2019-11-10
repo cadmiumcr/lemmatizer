@@ -58,4 +58,44 @@ module Cadmium
       forms.flatten.compact
     end
   end
+
+  module TokenExtension
+    def lemmatize(*args, **kwargs)
+      lemmatizer = Cadmium::Lemmatizer.new(*args, **kwargs)
+      lemmatizer.lemmatize(self)
+    end
+  end
+
+  # :nodoc:
+  class Token
+    include Cadmium::TokenExtension
+  end
+
+  module SentenceExtension
+    def lemmatize
+      self.tokens.each do |token|
+        token.lemma = token.lemmatize.first
+      end
+      self
+    end
+  end
+
+  # :nodoc:
+  class Sentence
+    include Cadmium::SentenceExtension
+  end
+
+  module DocumentExtension
+    def lemmatize
+      self.sentences.each do |sentence|
+        sentence.lemmatize
+      end
+      self
+    end
+  end
+
+  # :nodoc:
+  class Document
+    include Cadmium::DocumentExtension
+  end
 end
